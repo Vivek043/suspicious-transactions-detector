@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
 import pandas as pd
-st.experimental_rerun()
+
 st.title("🛡️ Suspicious Transaction Compliance Dashboard — v2")
+st.rerun()
 
 
 st.set_page_config(page_title="Compliance Dashboard", layout="wide")
