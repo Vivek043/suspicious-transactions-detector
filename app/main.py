@@ -1,13 +1,17 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 from app.model import score_transaction
 
 app = FastAPI()
 
-@app.get("/")
-def root():
-    return {"message": "FastAPI is running!"}
+class Transaction(BaseModel):
+    amount: float
+    timestamp: str
+    location: str
+    source_account: str
+    destination_account: str
 
 @app.post("/score")
-def score(data: dict):
-    result = score_transaction(data)
+def score(tx: Transaction):
+    result = score_transaction(tx.dict())
     return {"risk_score": result}
