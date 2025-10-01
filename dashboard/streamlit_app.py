@@ -2,7 +2,10 @@ import streamlit as st
 import requests
 import pandas as pd
 
-st.rerun()
+
+# Example: rerun only if a button is clicked
+if st.button("Refresh"):
+    st.rerun()
 
 
 st.set_page_config(page_title="Compliance Dashboard", layout="wide")
