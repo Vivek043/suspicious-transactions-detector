@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import pandas as pd
 
-st.title("🛡️ Suspicious Transaction Compliance Dashboard — v2")
 st.rerun()
 
 
