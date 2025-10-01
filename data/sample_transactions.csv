@@ -1,0 +1,4 @@
+transaction_id,amount,location
+TX001,500,New York
+TX002,1200,Chicago
+TX003,300,Dallas
