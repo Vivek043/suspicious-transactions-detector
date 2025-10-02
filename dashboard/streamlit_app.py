@@ -2,11 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 
-
-# Example: rerun only if a button is clicked
-if st.button("Refresh"):
-    st.rerun()
-
+st.write("Streamlit app loaded ✅")
 
 st.set_page_config(page_title="Compliance Dashboard", layout="wide")
 st.title("🛡️ Suspicious Transaction Compliance Dashboard")
@@ -66,16 +62,18 @@ if "history" in st.session_state and st.session_state.history:
     df = pd.DataFrame(st.session_state.history)
     st.dataframe(df)
 
-
-
-import requests
-
-try:
-    response = requests.post("http://localhost:8000/score", json=payload)
-    response.raise_for_status()
-    result = response.json()
-    st.write(f"Risk Score: {result.get('risk_score', 'N/A')}")
-except requests.exceptions.RequestException as e:
-    st.error(f"Request failed: {e}")
-except Exception as e:
-    st.error(f"Unexpected error: {e}")
+    # Optionally re-check the last submitted transaction (safe-guard)
+    last = st.session_state.history[-1]
+    try:
+        response = requests.post("http://localhost:8000/score", json={
+            "amount": last["amount"],
+            "timestamp": last["timestamp"],
+            "location": last["location"]
+        })
+        response.raise_for_status()
+        result = response.json()
+        st.write(f"Risk Score (live): {result.get('risk_score', 'N/A')}")
+    except requests.exceptions.RequestException as e:
+        st.error(f"Request failed: {e}")
+    except Exception as e:
+        st.error(f"Unexpected error: {e}")
