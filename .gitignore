@@ -1,9 +1,21 @@
 
 __pycache__/
 *.pyc
+.venv/
 venv/
 .venv/
 .env
 .DS_Store
 .vscode/
 .ipynb_checkpoints/
+
+# Virtual environments
+env/
+.env
+*.env
+
+# VSCode
+.vscode/
+
+# Mac
+.DS_Store
