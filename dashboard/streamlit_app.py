@@ -19,12 +19,13 @@ destination_account = st.sidebar.text_input("Destination Account", value="CUST84
 
 if st.sidebar.button("Submit Transaction"):
     payload = {
-        "amount": amount,
-        "timestamp": timestamp,
-        "location": location,
-        "source_account": source_account,
-        "destination_account": destination_account
+        "amount": float(st.session_state.amount),
+        "timestamp": st.session_state.timestamp,
+        "location": st.session_state.location,
+        "source_account": st.session_state.source_account,
+        "destination_account": st.session_state.destination_account
     }
+
 
     response = requests.post("http://localhost:8000/score", json=payload)
     risk_score = response.json()["risk_score"]
