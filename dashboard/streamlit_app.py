@@ -1,6 +1,11 @@
 import streamlit as st
 import requests
 import pandas as pd
+# Initialize session state keys
+for key in ["amount", "timestamp", "location", "source_account", "destination_account"]:
+    if key not in st.session_state:
+        st.session_state[key] = ""
+
 
 st.write("Streamlit app loaded ✅")
 
@@ -15,6 +20,11 @@ timestamp = st.sidebar.text_input("Timestamp (YYYY-MM-DD HH:MM:SS)", value="2025
 location = st.sidebar.selectbox("Location", ["New York", "Chicago", "Dallas", "HighRiskCountry1", "HighRiskCountry2"])
 source_account = st.sidebar.text_input("Source Account", value="CUST001")
 destination_account = st.sidebar.text_input("Destination Account", value="CUST847")
+st.text_input("Amount", key="amount")
+st.text_input("Timestamp (YYYY-MM-DD HH:MM:SS)", key="timestamp")
+st.text_input("Location", key="location")
+st.text_input("Source Account", key="source_account")
+st.text_input("Destination Account", key="destination_account")
 
 
 if st.sidebar.button("Submit Transaction"):
@@ -60,6 +70,7 @@ if st.sidebar.button("Submit Transaction"):
 # Display history
 if "history" in st.session_state and st.session_state.history:
     st.subheader("📁 Flagged Transaction History")
+
     df = pd.DataFrame(st.session_state.history)
     st.dataframe(df)
 
