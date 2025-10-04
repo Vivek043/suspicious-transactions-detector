@@ -7,6 +7,8 @@ import os
 import json
 import pandas as pd
 from logic.risk_score import calculate_risk_score
+from simulator import stream_transactions
+
 # Load sample transactions
 sample_path = "data/notebooks/sample_transactions.csv"
 df = pd.read_csv(sample_path, parse_dates=["Time"])
@@ -52,8 +54,6 @@ st.title("Suspicious Transaction Compliance Dashboard")
 history = load_history()
 save_history(history)
 
-st.title("Suspicious Transaction Compliance Dashboard")
-
 # Transaction Input
 amount = st.number_input("Amount (USD)", min_value=0.0)
 # Date and time inputs
@@ -86,6 +86,22 @@ if st.button("Submit Transaction"):
     st.write("Reasons:")
     for reason in reasons:
         st.markdown(f"- {reason}")
+simulate = st.checkbox("Simulate Real-Time Transactions")
+
+if simulate:
+    st.info("Streaming transactions...")
+    for tx in stream_transactions():
+        score, reasons = calculate_risk_score(
+            tx["amount"], tx["time"], tx["location"],
+            tx["source"], tx["destination"], history
+        )
+        tx["risk_score"] = score
+        tx["reasons"] = reasons
+        history.append(tx)
+
+        st.write(f"New Transaction: {tx['time']} | Score: {score}")
+        for reason in reasons:
+            st.markdown(f"- {reason}")
 
 # History Table
 st.subheader("Scored Sample Transactions")
@@ -124,3 +140,10 @@ st.subheader("Filtered Results")
 for tx in filtered_history:
     with st.expander(f"{tx['time']} | Score: {tx['risk_score']}"):
         st.write(tx)
+
+#Save Flagged Transactions
+def save_flagged(history, filename="data/flagged_transactions.json"):
+    flagged = [tx for tx in history if tx["risk_score"] >= 0.5]
+    with open(filename, "w") as f:
+        json.dump(flagged, f, default=str)
+save_flagged(history)
