@@ -3,12 +3,35 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import streamlit as st
 from datetime import datetime
-from logic.risk_score import calculate_risk_score
 import os
 import json
 import pandas as pd
+from logic.risk_score import calculate_risk_score
+# Load sample transactions
+sample_path = "data/notebooks/sample_transactions.csv"
+df = pd.read_csv(sample_path, parse_dates=["Time"])
 
-df = pd.read_csv("data/notebooks/sample_transactions.csv", parse_dates=["Time"])
+scored_transactions = []
+
+for _, row in df.iterrows():
+    score, reasons = calculate_risk_score(
+        row["Amount"],
+        row["Time"],
+        row["Location"],
+        row["Source"],
+        row["Destination"],
+        scored_transactions  # use scored history for repetition logic
+    )
+    scored_transactions.append({
+        "time": row["Time"],
+        "amount": row["Amount"],
+        "location": row["Location"],
+        "source": row["Source"],
+        "destination": row["Destination"],
+        "risk_score": score,
+        "reasons": reasons
+    })
+
 
 def save_history(history, filename="data/transactions.json"):
     with open(filename, "w") as f:
@@ -65,8 +88,9 @@ if st.button("Submit Transaction"):
         st.markdown(f"- {reason}")
 
 # History Table
-st.subheader("Flagged Transaction History")
-for tx in history:
+st.subheader("Scored Sample Transactions")
+
+for tx in scored_transactions:
     with st.expander(f"{tx['time']} | Score: {tx['risk_score']}"):
         st.write(f"Amount: ${tx['amount']}")
         st.write(f"Location: {tx['location']}")
@@ -75,6 +99,7 @@ for tx in history:
         st.write("Reasons:")
         for reason in tx['reasons']:
             st.markdown(f"- {reason}")
+
         st.write(tx)
 with st.sidebar:
     st.header("Explainability")
