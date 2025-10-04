@@ -17,14 +17,18 @@ st.title("Suspicious Transaction Compliance Dashboard")
 
 # Transaction Input
 amount = st.number_input("Amount (USD)", min_value=0.0)
-time = st.datetime_input("Time", value=datetime.now())
+# Date and time inputs
+date = st.date_input("Transaction Date", value=datetime.now().date())
+time = st.time_input("Transaction Time", value=datetime.now().time())
+# Combine into a single datetime object
+transaction_time = datetime.combine(date, time)
 location = st.text_input("Location")
 source = st.text_input("Source Account")
 destination = st.text_input("Destination Account")
 
 if st.button("Submit Transaction"):
     risk_score, reasons = calculate_risk_score(
-        amount, time, location, source, destination, history
+        amount, transaction_time, location, source, destination, history
     )
 
     new_tx = {
