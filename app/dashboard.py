@@ -1,6 +1,8 @@
 import streamlit as st
 from datetime import datetime
 from logic.risk_score import calculate_risk_score
+import os
+st.write("Current working directory:", os.getcwd())
 
 st.set_page_config(page_title="Suspicious Transaction Dashboard", layout="wide")
 st.title("Suspicious Transaction Compliance Dashboard")
