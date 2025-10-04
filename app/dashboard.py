@@ -6,6 +6,10 @@ from datetime import datetime
 from logic.risk_score import calculate_risk_score
 import os
 import json
+import pandas as pd
+
+df = pd.read_csv("data/notebooks/sample_transactions.csv", parse_dates=["Time"])
+
 def save_history(history, filename="data/transactions.json"):
     with open(filename, "w") as f:
         json.dump(history, f, default=str)
