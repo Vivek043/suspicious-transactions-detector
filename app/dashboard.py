@@ -9,6 +9,44 @@ import pandas as pd
 from logic.risk_score import calculate_risk_score
 from simulator import stream_transactions
 
+#UI adjustments
+st.markdown("""
+    <style>
+        .reportview-container .main {
+            padding-top: 10px;
+            padding-right: 20px;
+            padding-left: 20px;
+            padding-bottom: 10px;
+        }
+        h1, h2, h3 {
+            font-size: 20px;
+        }
+        .stButton button {
+            padding: 0.25rem 0.75rem;
+            font-size: 14px;
+        }
+        .stTextInput, .stNumberInput, .stDateInput, .stTimeInput {
+            font-size: 14px;
+        }
+        .stExpander {
+            font-size: 14px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+#reduces vertical length and improves readability.
+col1, col2 = st.columns(2)
+
+with col1:
+    amount = st.number_input("Amount (USD)", min_value=0.0)
+    location = st.text_input("Location")
+
+with col2:
+    date = st.date_input("Date")
+    time = st.time_input("Time")
+    transaction_time = datetime.combine(date, time)
+
+
 # Load sample transactions
 sample_path = "data/notebooks/sample_transactions.csv"
 df = pd.read_csv(sample_path, parse_dates=["Time"])
@@ -34,7 +72,6 @@ for _, row in df.iterrows():
         "reasons": reasons
     })
 
-
 def save_history(history, filename="data/transactions.json"):
     with open(filename, "w") as f:
         json.dump(history, f, default=str)
@@ -53,6 +90,23 @@ st.title("Suspicious Transaction Compliance Dashboard")
 # Simulated history
 history = load_history()
 save_history(history)
+
+with st.expander("View Flagged Transaction History", expanded=False):
+    for tx in history:
+        st.write(f"{tx['time']} | Score: {tx['risk_score']}")
+
+with st.sidebar:
+    st.header("Why Transactions Are Flagged")
+    st.markdown("""
+    - High amount
+    - Off-hours activity
+    - Risky location
+    - Repeated destination
+    """)
+#quick summary
+st.success(f"Total Transactions Scored: {len(history)}")
+flagged = [tx for tx in history if tx["risk_score"] >= 0.5]
+st.warning(f"Flagged Transactions: {len(flagged)}")
 
 # Transaction Input
 amount = st.number_input("Amount (USD)", min_value=0.0)
