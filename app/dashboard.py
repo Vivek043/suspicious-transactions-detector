@@ -109,7 +109,8 @@ flagged = [tx for tx in history if tx["risk_score"] >= 0.5]
 st.warning(f"Flagged Transactions: {len(flagged)}")
 
 # Transaction Input
-amount = st.number_input("Amount (USD)", min_value=0.0)
+amount = st.number_input("Amount (USD)", min_value=0.0, key="amount_input")
+
 # Date and time inputs
 date = st.date_input("Transaction Date", value=datetime.now().date())
 time = st.time_input("Transaction Time", value=datetime.now().time())
