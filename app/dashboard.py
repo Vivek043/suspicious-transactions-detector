@@ -83,6 +83,7 @@ with col1:
     amount = st.number_input("Amount (USD)", min_value=0.0, key="manual_amount")
     location = st.text_input("Location", key="manual_location")
     source = st.text_input("Source Account", key="manual_source")
+    transaction_time = st.text_input("Transaction Time", key="manual_Transaction Time")
     destination = st.text_input("Destination Account", key="manual_destination")
 
 with col2:
