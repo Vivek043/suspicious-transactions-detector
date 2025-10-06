@@ -5,8 +5,10 @@ def calculate_risk_score(location, time_block, source_amount, destination_amount
         source_amount = float(source_amount)
         destination_amount = float(destination_amount)
     except (ValueError, TypeError):
+        print("⚠️ Failed to convert amounts:", source_amount, destination_amount)
         source_amount = 0.0
         destination_amount = 0.0
+
 
     # --- Step 2: Normalize names and location ---
     source_name = str(source_name).strip().lower()
