@@ -1,30 +1,43 @@
 from datetime import datetime
 
-def calculate_risk_score(amount, time, location, source, destination, history):
-    score = 0.0
+def calculate_risk_score(location, time, source_amount, destination_amount, source_name, destination_name):
+    # Convert time to datetime if it's a string
+    if isinstance(time, str):
+        try:
+            time = datetime.fromisoformat(time)
+        except ValueError:
+            try:
+                time = datetime.strptime(time, "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                raise ValueError(f"Unrecognized time format: {time}")
+
+    hour = time.hour
+
+    risk_score = 0
     reasons = []
 
-    # Amount threshold
-    if amount > 100000:
-        score += 0.3
-        reasons.append("Amount exceeds $100,000 threshold")
+    # Rule 1: High amount
+    if source_amount > 10000 or destination_amount > 10000:
+        risk_score += 30
+        reasons.append("High transaction amount")
 
-    # Off-hours transaction
-    hour = time.hour
+    # Rule 2: Odd hours
     if hour < 6 or hour > 22:
-        score += 0.2
-        reasons.append("Transaction during off-hours")
+        risk_score += 20
+        reasons.append("Transaction during odd hours")
 
-    # High-risk location
-    flagged_locations = ["New York", "Miami", "Dubai"]
-    if location in flagged_locations:
-        score += 0.1
-        reasons.append(f"Location flagged: {location}")
+    # Rule 3: Suspicious location
+    suspicious_locations = ['Russia', 'Iran', 'North Korea']
+    if location in suspicious_locations:
+        risk_score += 25
+        reasons.append("Suspicious location")
 
-    # Repeated destination
-    recent_destinations = [tx['destination'] for tx in history[-5:]]
-    if recent_destinations.count(destination) > 2:
-        score += 0.2
-        reasons.append("Repeated destination account")
+    # Rule 4: Mismatched names
+    if source_name.lower() == destination_name.lower():
+        risk_score += 10
+        reasons.append("Same source and destination name")
 
-    return round(score, 2), reasons
+    # Normalize score
+    risk_score = min(risk_score, 100)
+
+    return risk_score, reasons
