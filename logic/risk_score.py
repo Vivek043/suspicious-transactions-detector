@@ -13,6 +13,13 @@ def calculate_risk_score(location, time, source_amount, destination_amount, sour
 
     hour = time.hour
 
+    # Convert amounts to float if they come in as strings
+    try:
+        source_amount = float(source_amount)
+        destination_amount = float(destination_amount)
+    except ValueError:
+        raise ValueError("Transaction amounts must be numeric")
+
     risk_score = 0
     reasons = []
 
