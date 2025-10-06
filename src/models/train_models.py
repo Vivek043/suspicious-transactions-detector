@@ -1,5 +1,6 @@
 import pandas as pd
-
+import joblib
+import os
 df = pd.read_csv('src/data/simulated_transactions.csv')
 print(df.head())
 print(df['label'].value_counts())
@@ -81,18 +82,20 @@ for name, model in models.items():
 results_df = pd.DataFrame(results).sort_values(by='F1 Score', ascending=False)
 print(results_df)
 
-import joblib
+# Create models directory if it doesn't exist
+os.makedirs("models", exist_ok=True)
 
 # Select best model by F1 Score
-best_model_name = results_df.iloc[0]['Model']
+best_model_name = results_df.iloc[0]["Model"]
 best_model = models[best_model_name]
 
 # Rebuild pipeline with best model
-best_pipeline = Pipeline(steps=[('preprocessor', preprocessor), ('classifier', best_model)])
+best_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("classifier", best_model)])
 
 # Fit on full training data
 best_pipeline.fit(X_train, y_train)
 
-# Save to file
-joblib.dump(best_pipeline, 'models/best_model.pkl')
+# Save to models/best_model.pkl
+joblib.dump(best_pipeline, "models/best_model.pkl")
 print(f"✅ Saved best model: {best_model_name} to models/best_model.pkl")
+
