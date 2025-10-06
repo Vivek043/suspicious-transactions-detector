@@ -1,6 +1,7 @@
 from datetime import datetime
 
-def calculate_risk_score(location, time, source_amount, destination_amount, source_name, destination_name):
+def calculate_risk_score(location, time_block, source_amount, destination_amount, source_name, destination_name):
+
     # --- Step 1: Convert time to datetime ---
     if isinstance(time, str):
         try:
@@ -35,9 +36,10 @@ def calculate_risk_score(location, time, source_amount, destination_amount, sour
         reasons.append("High transaction amount")
 
     # Rule 2: Odd transaction hours
-    if hour < 6 or hour > 22:
+    if time_block == "Night (22–6)":
         risk_score += 20
         reasons.append("Transaction during odd hours")
+
 
     # Rule 3: Suspicious location
     suspicious_locations = ['russia', 'iran', 'north korea']

@@ -5,7 +5,6 @@ import json
 import sys, os
 from datetime import datetime
 from logic.risk_score import calculate_risk_score
-st.write("Working directory:", os.getcwd())
 
 from simulator import stream_transactions
 
@@ -82,7 +81,7 @@ with col1:
     amount = st.number_input("Amount (USD)", min_value=0.0, key="manual_amount")
     location = st.text_input("Location", key="manual_location")
     source = st.text_input("Source Account", key="manual_source")
-    transaction_time = st.text_input("Transaction Time", key="manual_Transaction Time")
+    time_block = st.selectbox("Transaction Time Block", ["Morning (6–12)", "Afternoon (12–18)", "Evening (18–22)", "Night (22–6)"])
     destination = st.text_input("Destination Account", key="manual_destination")
 
 with col2:
@@ -92,10 +91,10 @@ with col2:
 
 if st.button("Submit Transaction", key="manual_submit"):
     risk_score, reasons = calculate_risk_score(
-        amount, transaction_time, location, source, destination, history
+        amount, time_block, location, source, destination, history
     )
     new_tx = {
-        "time": transaction_time,
+        "time": time_block,
         "amount": amount,
         "location": location,
         "source": source,
