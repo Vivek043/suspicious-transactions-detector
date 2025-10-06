@@ -158,16 +158,28 @@ with st.expander("View Flagged Transaction History", expanded=False):
 #Scan Submitted Transaction
 if st.button("Scan Submitted New Transaction"):
     transaction_dict = {
-        "amount": float(source_amount),
-        "origin_country": location,
-        "destination_country": location,
-        "transaction_type": "transfer",  # or make this a dropdown
-        "time_of_day": time_block,
-        "customer_age": 35,              # placeholder or add to form
-        "account_age_days": 400,         # placeholder or add to form
-        "num_prev_flags": 0,             # placeholder or add to form
-        "is_high_risk_country": location.lower() in ["russia", "iran", "north korea"]
+        "amount": float(st.session_state["source_amount"]),
+        "origin_country": st.session_state["location"],
+        "destination_country": st.session_state["location"],
+        "transaction_type": "transfer",
+        "time_of_day": st.session_state["time_block"],
+        "customer_age": 35,
+        "account_age_days": 400,
+        "num_prev_flags": 0,
+        "is_high_risk_country": st.session_state["location"].lower() in ["russia", "iran", "north korea"]
     }
 
     label, risk_proba = score_transaction(transaction_dict)
     st.success(f"ML Prediction: {'Suspicious' if label == 1 else 'Normal'} (Risk Probability: {risk_proba:.2f})")
+
+
+    label, risk_proba = score_transaction(transaction_dict)
+    st.success(f"ML Prediction: {'Suspicious' if label == 1 else 'Normal'} (Risk Probability: {risk_proba:.2f})")
+
+with st.form("transaction_form"):
+    st.session_state["source_amount"] = st.text_input("Amount (USD)")
+    st.session_state["location"] = st.text_input("Location")
+    st.session_state["source_name"] = st.text_input("Source Account")
+    st.session_state["destination_name"] = st.text_input("Destination Account")
+    st.session_state["time_block"] = st.selectbox("Transaction Time Block", ["Morning (6–12)", "Afternoon (12–18)", "Evening (18–22)", "Night (22–6)"])
+    submitted = st.form_submit_button("Submit Transaction")
