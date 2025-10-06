@@ -5,7 +5,7 @@ import json
 import sys, os
 from datetime import datetime
 from logic.risk_score import calculate_risk_score
-from src.models.score import score_transaction
+from models.score import score_transaction
 
 from simulator import stream_transactions
 
