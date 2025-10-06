@@ -5,9 +5,8 @@ import json
 import sys, os
 from datetime import datetime
 from logic.risk_score import calculate_risk_score
+st.write("Working directory:", os.getcwd())
 
-# Fix import path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from simulator import stream_transactions
 
 # Custom CSS for compact UI
