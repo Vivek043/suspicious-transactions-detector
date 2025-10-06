@@ -5,6 +5,7 @@ import json
 import sys, os
 from datetime import datetime
 from logic.risk_score import calculate_risk_score
+from src.models.score import score_transaction
 
 from simulator import stream_transactions
 
@@ -153,3 +154,20 @@ with st.expander("View Flagged Transaction History", expanded=False):
             st.write(f"Destination: {tx['destination']}")
             for reason in tx['reasons']:
                 st.markdown(f"- {reason}")
+
+#Scan Submitted Transaction
+if st.button("Scan Submitted New Transaction"):
+    transaction_dict = {
+        "amount": float(source_amount),
+        "origin_country": location,
+        "destination_country": location,
+        "transaction_type": "transfer",  # or make this a dropdown
+        "time_of_day": time_block,
+        "customer_age": 35,              # placeholder or add to form
+        "account_age_days": 400,         # placeholder or add to form
+        "num_prev_flags": 0,             # placeholder or add to form
+        "is_high_risk_country": location.lower() in ["russia", "iran", "north korea"]
+    }
+
+    label, risk_proba = score_transaction(transaction_dict)
+    st.success(f"ML Prediction: {'Suspicious' if label == 1 else 'Normal'} (Risk Probability: {risk_proba:.2f})")
