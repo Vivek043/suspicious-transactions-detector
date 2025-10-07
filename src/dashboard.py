@@ -6,6 +6,7 @@ import sys, os
 from datetime import datetime
 from logic.risk_score import calculate_risk_score
 from models.score import score_transaction
+from logic.logger import log_transaction
 
 from simulator import stream_transactions
 
@@ -175,6 +176,79 @@ if st.button("Scan Submitted New Transaction"):
 
     label, risk_proba = score_transaction(transaction_dict)
     st.success(f"ML Prediction: {'Suspicious' if label == 1 else 'Normal'} (Risk Probability: {risk_proba:.2f})")
+# Rule-based scoring
+rule_score, rule_reasons = calculate_risk_score(
+    location,
+    time_block,
+    source_amount,
+    destination_amount,
+    source_name,
+    destination_name
+)
+
+# ML scoring
+label, risk_proba = score_transaction(transaction_dict)
+
+# ✅ Log the transaction
+log_transaction(
+    transaction_dict,
+    rule_score,
+    rule_reasons,
+    label,
+    risk_proba
+)
+
+if st.button("Show Previous Transactions"):
+    if os.path.exists("src/data/transaction_log.csv"):
+        log_df = pd.read_csv("src/data/transaction_log.csv")
+        st.dataframe(log_df.tail(20))
+    else:
+        st.info("No transactions logged yet.")
+log_path = "src/data/transaction_log.csv"
+
+if os.path.exists(log_path):
+    log_df = pd.read_csv(log_path)
+
+    st.subheader("📄 Filter Transactions")
+
+    # Filter options
+    risk_filter = st.selectbox("Filter by ML Risk Label", ["All", "Suspicious", "Normal"])
+    location_filter = st.selectbox("Filter by Location", ["All"] + sorted(log_df["origin_country"].unique()))
+    account_filter = st.selectbox("Filter by Source Account", ["All"] + sorted(log_df["source_account"].unique()))
+
+    # Apply filters
+    filtered_df = log_df.copy()
+
+    if risk_filter != "All":
+        filtered_df = filtered_df[filtered_df["ml_label"] == (1 if risk_filter == "Suspicious" else 0)]
+
+    if location_filter != "All":
+        filtered_df = filtered_df[filtered_df["origin_country"] == location_filter]
+
+    if account_filter != "All":
+        filtered_df = filtered_df[filtered_df["source_account"] == account_filter]
+
+    st.dataframe(filtered_df.tail(50))
+else:
+    st.info("No transactions logged yet.")
+import io
+
+if not filtered_df.empty and st.button("📤 Export Flagged Transactions"):
+    flagged_df = filtered_df[filtered_df["ml_label"] == 1]
+    if not flagged_df.empty:
+        csv_buffer = io.StringIO()
+        flagged_df.to_csv(csv_buffer, index=False)
+        st.download_button(
+            label="Download CSV",
+            data=csv_buffer.getvalue(),
+            file_name="flagged_transactions.csv",
+            mime="text/csv"
+        )
+    else:
+        st.info("No flagged transactions to export.")
+
+# Display result
+    st.success(f"ML Prediction: {'Suspicious' if label == 1 else 'Normal'} (Risk Probability: {risk_proba:.2f})")      
 
 with st.form("transaction_form"):
     st.session_state["source_amount"] = st.text_input("Amount (USD)")
@@ -183,3 +257,12 @@ with st.form("transaction_form"):
     st.session_state["destination_name"] = st.text_input("Destination Account")
     st.session_state["time_block"] = st.selectbox("Transaction Time Block", ["Morning (6–12)", "Afternoon (12–18)", "Evening (18–22)", "Night (22–6)"])
     submitted = st.form_submit_button("Submit Transaction")
+if st.button("Show Previous Transactions"):
+    log_path = "src/data/transaction_log.csv"
+    if os.path.exists(log_path):
+        log_df = pd.read_csv(log_path)
+        st.subheader("📄 Recent Transactions")
+        st.dataframe(log_df.tail(20))  # Show last 20 entries
+    else:
+        st.info("No transactions logged yet.")
+
