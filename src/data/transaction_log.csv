@@ -1,0 +1,2 @@
+amount,origin_country,destination_country,transaction_type,time_of_day,customer_age,account_age_days,num_prev_flags,source_account,destination_account,is_high_risk_country,timestamp,rule_score,rule_reasons,ml_label,ml_proba
+1000000.0,NY,NY,transfer,14:00,35,400,0,CUST030,CUST031,False,2025-10-07 12:01:47,30,High transaction amount,1,1.0
