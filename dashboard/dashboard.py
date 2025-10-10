@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 from models.model_inference import score_transaction
 from utils.feature_engineering import preprocess_transaction
-
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 st.title("Suspicious Transaction Detector")
 
 # Simulated input
