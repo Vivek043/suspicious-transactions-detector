@@ -4,7 +4,6 @@ import os
 from logic.risk_score import calculate_risk_score
 from models.score import score_transaction
 from logic.logger import log_transaction
-
 st.set_page_config(page_title="Suspicious Transaction Compliance Dashboard", layout="wide")
 st.title("🚨 Suspicious Transaction Compliance Dashboard")
 
