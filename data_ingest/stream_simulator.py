@@ -1,15 +1,15 @@
 # stream_simulator.py
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import pandas as pd
+import time
+# Add repo root to sys.path
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if repo_root not in sys.path:
+    sys.path.insert(0, repo_root)
 
 from models.model_inference import score_transaction
 from utils.feature_engineering import preprocess_transaction
-import pandas as pd
-import time
-
-
-
 def stream_transactions(csv_path, delay=2):
     df = pd.read_csv(csv_path)
 
@@ -20,3 +20,5 @@ def stream_transactions(csv_path, delay=2):
 
         print(f"TXN {row['transaction_id']} → Risk: {result['risk_score']} | Flagged: {result['flagged']} | Reasons: {result['reasons']}")
         time.sleep(delay)
+if __name__ == "__main__":
+    stream_transactions("data/transactions.csv", delay=2)

@@ -1,0 +1,12 @@
+# Example: train_model.py
+from sklearn.ensemble import IsolationForest
+import joblib
+import pandas as pd
+
+df = pd.read_csv("data/transactions.csv")
+features = df[["amount", "tx_count_24h", "is_blacklisted"]]  # adjust as needed
+
+model = IsolationForest()
+model.fit(features)
+
+joblib.dump(model, "models/isolation_forest.pkl")
