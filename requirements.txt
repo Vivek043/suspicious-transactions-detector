@@ -1,6 +1,6 @@
-fastapi
-uvicorn
 streamlit
 pandas
 scikit-learn
-requests
+xgboost
+shap
+geopy
