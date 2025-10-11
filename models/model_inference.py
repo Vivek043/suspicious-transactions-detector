@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 # Load models (update paths if needed)
-anomaly_model = joblib.load("models/train_isolation.py")
+anomaly_model = joblib.load("models/isolation_forest.pkl")
 classifier_model = joblib.load("models/train_classifier.py")
 
 def score_transaction(features: pd.DataFrame) -> dict:
