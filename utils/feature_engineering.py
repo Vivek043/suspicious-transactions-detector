@@ -32,3 +32,12 @@ def enrich_with_external_risk(df, country_risk_dict, blacklist):
     df['country_risk'] = df['destination_country'].map(country_risk_dict)
     df['is_blacklisted'] = df['destination_account'].isin(blacklist).astype(int)
     return df
+
+def preprocess_transaction(txn_df: pd.DataFrame) -> pd.DataFrame:
+    # Add missing features if needed
+    txn_df["tx_count_24h"] = txn_df.get("tx_count_24h", pd.Series([5] * len(txn_df)))
+    txn_df["is_blacklisted"] = txn_df.get("is_blacklisted", pd.Series([0] * len(txn_df)))
+
+    # Select and clean features
+    features = txn_df[["amount", "tx_count_24h", "is_blacklisted"]].fillna(0)
+    return features
