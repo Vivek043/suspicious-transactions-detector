@@ -33,6 +33,10 @@ async def score_transaction(request: Request):
             "source_id": "source",
             "destination_id": "destination"
         })
+        required_cols = ["source", "destination"]
+        missing = [col for col in required_cols if col not in txn_df.columns]
+        if missing:
+            raise ValueError(f"❌ Missing required columns: {missing}")
 
         # Feature engineering
         expected_features = ["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]
