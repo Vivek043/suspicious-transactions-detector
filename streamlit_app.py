@@ -14,6 +14,14 @@ except FileNotFoundError:
     st.error("❌ Could not find 'data/new_transactions.csv'. Please add test transactions.")
     st.stop()
 
+# Normalize column names
+txn_df = txn_df.rename(columns={
+    "source_account": "source",
+    "destination_account": "destination",
+    "source_id": "source",
+    "destination_id": "destination"
+})
+
 # Display raw input
 st.subheader("📥 Incoming Transactions")
 st.dataframe(txn_df, width='stretch')
