@@ -1,5 +1,3 @@
-# streamlit_app.py
-
 import streamlit as st
 import pandas as pd
 import requests
@@ -43,9 +41,16 @@ st.subheader("📊 Scored Transactions")
 st.dataframe(scored_df, width='stretch')
 
 # Highlight flagged transactions
-st.subheader("🚩 Flagged Transactions")
-flagged = scored_df[scored_df["final_flag"] == 1]
-st.dataframe(flagged, width='stretch')
+if "final_flag" in scored_df.columns:
+    st.subheader("🚩 Flagged Transactions")
+    flagged = scored_df[scored_df["final_flag"] == 1]
+    st.dataframe(flagged, width='stretch')
+else:
+    st.warning("⚠️ No 'final_flag' column found in backend response.")
+
+# Debug: Show backend response
+st.write("🔍 Raw response from backend:")
+st.dataframe(results.head(), width='stretch')
 
 # Optional: Download results
 st.download_button("📥 Download Results as CSV", data=scored_df.to_csv(index=False), file_name="scored_transactions.csv")
