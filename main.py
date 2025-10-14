@@ -29,20 +29,25 @@ async def score_transaction(request: Request):
         # Normalize column names
         txn_df.columns = txn_df.columns.str.strip().str.lower()  # normalize headers
 
+        # Normalize column names
+        txn_df.columns = txn_df.columns.str.strip().str.lower()
+
         txn_df = txn_df.rename(columns={
             "source_account": "source",
-            "destination_account": "destination",
             "source_id": "source",
+            "account_number": "source",  # optional fallback
+            "destination_account": "destination",
             "destination_id": "destination",
-            "account_number": "source",  # optional
-            "receiver_account": "destination",  # optional
-            "dest_account": "destination"  # optional
+            "receiver_account": "destination",  # optional fallback
+            "dest_account": "destination"
         })
+
 
         required_cols = ["source", "destination"]
         missing = [col for col in required_cols if col not in txn_df.columns]
         if missing:
             raise ValueError(f"❌ Missing required columns: {missing}")
+
 
 
         # Feature engineering
