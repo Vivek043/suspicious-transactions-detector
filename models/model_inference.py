@@ -30,7 +30,7 @@ def score_transaction(features: pd.DataFrame) -> dict:
             reasons.append("Blacklisted account")
 
     return {
-        "risk_score": round(final_score, 2),
+       "risk_score": round(float(final_score), 2),
         "flagged": final_score > 80,
         "reasons": reasons
     }

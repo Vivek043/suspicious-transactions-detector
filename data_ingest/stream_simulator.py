@@ -3,6 +3,8 @@ import sys
 import os
 import pandas as pd
 import time
+history_df = pd.read_csv("data/transactions.csv")
+features = preprocess_transaction(pd.DataFrame([txn]), history_df)
 # Add repo root to sys.path
 repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if repo_root not in sys.path:
