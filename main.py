@@ -35,7 +35,9 @@ async def score_transaction(request: Request):
         })
 
         # Feature engineering
+        expected_features = ["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]
         features = preprocess_transaction(txn_df, history_df)
+        features = features[expected_features]
         print("✅ Scoring with features:", features.columns.tolist())
         print("✅ Features passed to model:", features.columns.tolist())
 
