@@ -27,16 +27,23 @@ async def score_transaction(request: Request):
         txn_df = pd.DataFrame(payload)
 
         # Normalize column names
+        txn_df.columns = txn_df.columns.str.strip().str.lower()  # normalize headers
+
         txn_df = txn_df.rename(columns={
             "source_account": "source",
             "destination_account": "destination",
             "source_id": "source",
-            "destination_id": "destination"
+            "destination_id": "destination",
+            "account_number": "source",  # optional
+            "receiver_account": "destination",  # optional
+            "dest_account": "destination"  # optional
         })
+
         required_cols = ["source", "destination"]
         missing = [col for col in required_cols if col not in txn_df.columns]
         if missing:
             raise ValueError(f"❌ Missing required columns: {missing}")
+
 
         # Feature engineering
         expected_features = ["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]
