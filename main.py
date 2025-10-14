@@ -36,6 +36,7 @@ async def score_transaction(request: Request):
 
         # Feature engineering
         features = preprocess_transaction(txn_df, history_df)
+        print("✅ Scoring with features:", features.columns.tolist())
 
         # Model scoring
         xgb_scores = xgb_model.predict_proba(features)[:, 1]
