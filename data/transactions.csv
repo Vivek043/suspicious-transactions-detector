@@ -1,4 +1,4 @@
-transaction_id,amount,timestamp,location,source_account,destination_account,destination_country
+transaction_id,amount,timestamp,location,source,destination_account,destination_country
 TXN001,12000,2025-10-10 13:15:00,Mumbai,ACC123,ACC999,IN
 TXN002,8500,2025-10-10 13:17:00,Delhi,ACC456,ACC888,IN
 ...

@@ -46,5 +46,8 @@ async def score_transaction(request: Request):
         "iso_flag": iso_flags,
         "final_flag": [max(x, i) for x, i in zip(xgb_flags, iso_flags)]
     })
+    print("Received payload:", txn_df.head())
+    print("Features:", features.head())
+    print("Scoring complete.")
 
     return results.to_dict(orient="records")
