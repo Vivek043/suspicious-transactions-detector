@@ -1,0 +1,4 @@
+timestamp,source,destination,amount,source_lat,source_lon,destination_lat,destination_lon,destination_country
+2025-10-13 14:32:00,A123,B456,500.0,32.7767,-96.7970,51.5074,-0.1278,GB
+2025-10-13 15:10:00,A123,C789,12000.0,32.7767,-96.7970,35.6895,139.6917,JP
+2025-10-13 15:45:00,D111,E222,250.0,40.7128,-74.0060,40.4168,-3.7038,ES
