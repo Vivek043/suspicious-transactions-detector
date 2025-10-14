@@ -55,6 +55,7 @@ def preprocess_transaction(txn_df: pd.DataFrame, history_df: pd.DataFrame) -> pd
     tx_counts = []
     for _, row in txn_df.iterrows():
         src = row["source"]
+        (history_df["source"] == src)
         ts = row["timestamp"]
         past_24h = history_df[
             (history_df["source"] == src) &
