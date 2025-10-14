@@ -6,19 +6,20 @@ from xgboost import XGBClassifier
 from utils.feature_engineering import preprocess_transaction
 
 # Load labeled data
-df = pd.read_csv("data/labeled_transactions.csv")  # must include 'label' column
+df = pd.read_csv("data/labeled_transactions.csv")
+history_df = pd.read_csv("data/transactions.csv")
 
 # Feature engineering
-history_df = pd.read_csv("data/transactions.csv")
 features = preprocess_transaction(df, history_df)
 
-# Match features to full set
+# Select full feature set
 X = features[["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]]
 y = df["label"]
 
 # Train model
-model = XGBClassifier()
+model = XGBClassifier(use_label_encoder=False, eval_metric="logloss")
 model.fit(X, y)
 
 # Save model
 joblib.dump(model, "models/xgboost_classifier.pkl")
+print("✅ Model retrained and saved to models/xgboost_classifier.pkl")
