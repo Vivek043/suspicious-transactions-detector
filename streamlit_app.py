@@ -16,7 +16,7 @@ except FileNotFoundError:
 
 # Display raw input
 st.subheader("📥 Incoming Transactions")
-st.dataframe(txn_df, use_container_width=True)
+st.dataframe(txn_df, width='stretch')
 
 # Send to FastAPI backend
 with st.spinner("Scoring transactions..."):
@@ -32,12 +32,12 @@ scored_df = pd.concat([txn_df.reset_index(drop=True), results.reset_index(drop=T
 
 # Display results
 st.subheader("📊 Scored Transactions")
-st.dataframe(scored_df, use_container_width=True)
+st.dataframe(scored_df, width='stretch')
 
 # Highlight flagged transactions
 st.subheader("🚩 Flagged Transactions")
 flagged = scored_df[scored_df["final_flag"] == 1]
-st.dataframe(flagged, use_container_width=True)
+st.dataframe(flagged, width='stretch')
 
 # Optional: Download results
 st.download_button("📥 Download Results as CSV", data=scored_df.to_csv(index=False), file_name="scored_transactions.csv")
