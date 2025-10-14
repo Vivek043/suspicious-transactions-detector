@@ -35,18 +35,20 @@ async def score_transaction(request: Request):
         txn_df = txn_df.rename(columns={
             "source_account": "source",
             "source_id": "source",
-            "account_number": "source",  # optional fallback
+            "account_number": "source",
             "destination_account": "destination",
             "destination_id": "destination",
-            "receiver_account": "destination",  # optional fallback
+            "receiver_account": "destination",
             "dest_account": "destination"
         })
 
 
-        required_cols = ["source", "destination"]
+
+        required_cols = ["source", "destination", "amount", "source_lat", "source_lon", "destination_lat", "destination_lon", "destination_country"]
         missing = [col for col in required_cols if col not in txn_df.columns]
         if missing:
             raise ValueError(f"❌ Missing required columns: {missing}")
+
 
 
 
@@ -54,8 +56,8 @@ async def score_transaction(request: Request):
         expected_features = ["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]
         features = preprocess_transaction(txn_df, history_df)
         features = features[expected_features]
-        print("✅ Scoring with features:", features.columns.tolist())
         print("✅ Features passed to model:", features.columns.tolist())
+        print("✅ Scoring with features:", features.columns.tolist())
 
         # Model scoring
         xgb_scores = xgb_model.predict_proba(features)[:, 1]

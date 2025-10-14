@@ -39,8 +39,8 @@ def add_geo_features(df):
     return df
 
 def enrich_with_external_risk(df, country_risk_dict, blacklist):
-    df['country_risk_score'] = df['destination_country'].map(country_risk_dict)
-    df['is_blacklisted'] = df['destination_account'].isin(blacklist).astype(int)
+    df['country_risk_score'] = df['destination_country'].map(country_risk_dict).fillna(0)
+    df['is_blacklisted'] = df['destination'].isin(blacklist).astype(int)
     return df
 
 #pre_processing_transaction
@@ -75,7 +75,11 @@ def preprocess_transaction(txn_df: pd.DataFrame, history_df: pd.DataFrame) -> pd
         geo_distances.append(dist)
     txn_df["geo_distance"] = geo_distances
     txn_df = enrich_with_external_risk(txn_df, country_risk_dict, blacklist)
-
+    
+    txn_df["is_blacklisted"] = txn_df.apply(
+        lambda row: int(row["source"] in blacklist or row["destination"] in blacklist),
+        axis=1
+    )
     # Final feature set
     features = txn_df[["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]].fillna(0)
     return features
