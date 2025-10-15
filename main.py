@@ -71,8 +71,8 @@ async def score_transaction(request: Request):
         combined["xgb_score"] = xgb_scores
         combined["xgb_flag"] = xgb_flags
         combined["iso_flag"] = iso_flags
-        combined["final_flag"] = final_flags
         combined["reason"] = combined.apply(get_flag_reason, axis=1)
+        combined["final_flag"] = [1 if (score > 0.6 or iso == 1) else 0 for score, iso in zip(xgb_scores, iso_flags)]
 
         return combined.to_dict(orient="records")
 
