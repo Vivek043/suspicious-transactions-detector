@@ -15,8 +15,8 @@ features = preprocess_transaction(df, history_df)
 # Select full feature set
 X = features[["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]]
 y = df["label"]
-print("✅ Training on features:", X.columns.tolist())
-
+print("✅ Columns in training DataFrame:", X.columns.tolist())
+print("✅ Sample row:", X.iloc[0])
 # Train model
 model = XGBClassifier(use_label_encoder=False, eval_metric="logloss")
 model.fit(X, y)
