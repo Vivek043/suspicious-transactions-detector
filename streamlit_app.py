@@ -30,6 +30,9 @@ def get_scored_data(payload):
         return pd.DataFrame()
 
 scored_df = get_scored_data(sample_payload)
+if "final_flag" not in scored_df.columns:
+    st.error("⚠️ Backend response missing 'final_flag'. Check for NaNs or scoring logic.")
+    st.stop()
 st.write("Returned columns:", scored_df.columns.tolist())
 st.dataframe(scored_df.head())
 
@@ -131,3 +134,5 @@ elif section == "Settings":
     st.session_state["model_choice"] = model_choice
 
     st.success("Settings saved. These will apply on next refresh.")
+    st.write("Returned columns:", scored_df.columns.tolist())
+    st.dataframe(scored_df.head())
