@@ -1,11 +1,21 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Dict
 import pandas as pd
 import joblib
+
+# Import preprocessing logic
 from features.feature_engineering import preprocess_transaction
 
+# Load models
+xgb_model = joblib.load("models/xgboost_classifier.pkl")
+iso_model = joblib.load("models/isolation_forest.pkl")
+
+# Define FastAPI app
 app = FastAPI()
 
+# Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,68 +23,55 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load models
-xgb_model = joblib.load("models/xgboost_classifier.pkl")
-iso_model = joblib.load("models/isolation_forest.pkl")
-
-# Load history data
-history_df = pd.read_csv("data/transactions.csv")
-
-def get_flag_reason(row):
-    reasons = []
-    if row["amount"] > 10000:
-        reasons.append("Large transfer")
-    if row["country_risk_score"] > 1.0:
-        reasons.append("High-risk country")
-    if row["is_blacklisted"] == 1:
-        reasons.append("Blacklisted account")
-    if row["geo_distance"] > 5000:
-        reasons.append("Unusual geo distance")
-    return ", ".join(reasons) if reasons else "Normal"
+# Define input schema
+class Transaction(BaseModel):
+    transaction_id: str
+    source: str
+    destination: str
+    amount: float
+    timestamp: str
+    country: str
+    currency: str
+    # Add any other fields your pipeline expects
 
 @app.post("/score")
-async def score_transaction(request: Request):
-    try:
-        payload = await request.json()
-        txn_df = pd.DataFrame(payload)
+async def score_transactions(payload: List[Dict]):
+    # Convert payload to DataFrame
+    df = pd.DataFrame(payload)
 
-        # Normalize and rename columns
-        txn_df.columns = txn_df.columns.str.strip().str.lower()
-        txn_df = txn_df.rename(columns={
-            "source_account": "source",
-            "source_id": "source",
-            "account_number": "source",
-            "destination_account": "destination",
-            "destination_id": "destination",
-            "receiver_account": "destination",
-            "dest_account": "destination"
-        })
+    # Preprocess input
+    df = preprocess_transaction(df)
 
-        required_cols = ["source", "destination", "amount", "source_lat", "source_lon", "destination_lat", "destination_lon", "destination_country"]
-        missing = [col for col in required_cols if col not in txn_df.columns]
-        if missing:
-            raise ValueError(f"Missing required columns: {missing}")
+    # Select features
+    xgb_features = [col for col in df.columns if col.startswith("feat_")]
+    iso_features = xgb_features  # Assuming same features for both
 
-        # Feature engineering
-        expected_features = ["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]
-        features = preprocess_transaction(txn_df, history_df)
-        features = features[expected_features].fillna(0)
+    # Score with XGBoost
+    xgb_scores = xgb_model.predict_proba(df[xgb_features])[:, 1]
+    xgb_flags = (xgb_scores > 0.6).astype(int)
 
-        # Model scoring
-        xgb_scores = xgb_model.predict_proba(features)[:, 1]
-        xgb_flags = (xgb_scores > 0.5).astype(int)
-        iso_flags = [1 if f == -1 else 0 for f in iso_model.predict(features)]
-        final_flags = [1 if (score > 0.6 or iso == 1) else 0 for score, iso in zip(xgb_scores, iso_flags)]
+    # Score with Isolation Forest
+    iso_raw = iso_model.predict(df[iso_features])
+    iso_flags = [1 if val == -1 else 0 for val in iso_raw]
 
-        # Combine results
-        combined = features.copy()
-        combined["xgb_score"] = xgb_scores
-        combined["xgb_flag"] = xgb_flags
-        combined["iso_flag"] = iso_flags
-        combined["reason"] = combined.apply(get_flag_reason, axis=1)
-        combined["final_flag"] = [1 if (score > 0.6 or iso == 1) else 0 for score, iso in zip(xgb_scores, iso_flags)]
+    # Final flag logic
+    final_flags = [1 if (xgb > 0.6 or iso == 1) else 0 for xgb, iso in zip(xgb_scores, iso_flags)]
 
-        return combined.to_dict(orient="records")
+    # Reason generator
+    def get_flag_reason(row):
+        reasons = []
+        if row["xgb_score"] > 0.6:
+            reasons.append("High XGBoost score")
+        if row["iso_flag"] == 1:
+            reasons.append("Isolation Forest anomaly")
+        return ", ".join(reasons) if reasons else "No anomaly"
 
-    except Exception as e:
-        return [{"error": str(e)}]
+    # Add results to DataFrame
+    df["xgb_score"] = xgb_scores
+    df["xgb_flag"] = xgb_flags
+    df["iso_flag"] = iso_flags
+    df["final_flag"] = final_flags
+    df["reason"] = df.apply(get_flag_reason, axis=1)
+
+    # Return scored data
+    return df.to_dict(orient="records")
