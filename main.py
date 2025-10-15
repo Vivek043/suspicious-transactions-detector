@@ -58,6 +58,7 @@ async def score_transaction(request: Request):
         expected_features = ["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]
         features = preprocess_transaction(txn_df, history_df)
         features = features[expected_features]
+        print("✅ Features passed to model:", features.columns.tolist())
 
         # Model scoring
         xgb_scores = xgb_model.predict_proba(features)[:, 1]

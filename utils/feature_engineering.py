@@ -82,6 +82,6 @@ def preprocess_transaction(txn_df: pd.DataFrame, history_df: pd.DataFrame) -> pd
     )
     # Final feature set
     features = txn_df[["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]].fillna(0)
-    return features
+    return txn_df[["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]].fillna(0)
 
 
