@@ -30,7 +30,7 @@ def get_scored_data(payload):
         return pd.DataFrame()
 
 scored_df = get_scored_data(sample_payload)
-if "final_flag" not in scored_df.columns:
+if scored_df.empty or "final_flag" not in scored_df.columns:
     st.error("⚠️ Backend response missing 'final_flag'. Check for NaNs or scoring logic.")
     st.stop()
 st.write("Returned columns:", scored_df.columns.tolist())

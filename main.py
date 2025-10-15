@@ -45,11 +45,19 @@ async def score_transactions(payload: List[Dict]):
     iso_features = xgb_features
 
     # Score with XGBoost
-    xgb_scores = xgb_model.predict_proba(df[xgb_features])[:, 1]
+    try:
+        xgb_scores = xgb_model.predict_proba(df[xgb_features])[:, 1]
+    except Exception as e:
+        return {"error": f"XGBoost scoring failed: {str(e)}"}
+
     xgb_flags = (xgb_scores > 0.6).astype(int)
 
     # Score with Isolation Forest
-    iso_raw = iso_model.predict(df[iso_features])
+    try:
+        iso_raw = iso_model.predict(df[iso_features])
+    except Exception as e:
+        return {"error": f"Isolation Forest scoring failed: {str(e)}"}
+
     iso_flags = [1 if val == -1 else 0 for val in iso_raw]
 
     # Final flag logic
@@ -72,7 +80,7 @@ async def score_transactions(payload: List[Dict]):
     df["reason"] = df.apply(get_flag_reason, axis=1)
 
     # Sanitize output
-    df = df.replace({pd.NA: 0, None: 0, float("nan"): 0})
+    df = df.replace({pd.NA: 0, None: 0})
     df.fillna("missing", inplace=True)
 
     return df.to_dict(orient="records")

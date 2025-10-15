@@ -30,4 +30,6 @@ def preprocess_transaction(txn_df, history_df):
 
     txn_df = enrich_with_external_risk(txn_df, country_risk_dict, blacklist)
 
+    txn_df.fillna(0, inplace=True)  # ✅ Critical fix
+
     return txn_df
