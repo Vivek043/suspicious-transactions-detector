@@ -30,6 +30,8 @@ def get_scored_data(payload):
         return pd.DataFrame()
 
 scored_df = get_scored_data(sample_payload)
+st.write("Returned columns:", scored_df.columns.tolist())
+st.dataframe(scored_df.head())
 
 # Dashboard Section
 if section == "Dashboard":
@@ -103,18 +105,29 @@ elif section == "Flagged Transactions":
 # Settings Section
 elif section == "Settings":
     st.subheader("⚙️ Settings")
-    st.markdown("Thresholds and model toggles will go here.")
-st.download_button("Download CSV", flagged.to_csv(index=False), "flagged_transactions.csv", "text/csv")
-if st.checkbox("Enable Auto-Refresh"):
-    st.experimental_rerun()
-st.markdown("### ⚙️ Model Settings")
 
-# Risk score threshold
-new_threshold = st.slider("Risk Score Threshold", 0.0, 1.0, 0.6, 0.05)
-st.session_state["risk_threshold"] = new_threshold
+    st.markdown("### 📤 Export All Flagged Transactions")
+    csv_all = flagged.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="Download All Flagged Transactions as CSV",
+        data=csv_all,
+        file_name="flagged_transactions.csv",
+        mime="text/csv"
+    )
 
-# Model toggle
-model_choice = st.radio("Model Selection", ["Hybrid", "XGBoost Only", "Isolation Forest Only"])
-st.session_state["model_choice"] = model_choice
+    st.markdown("### 🔄 Real-Time Mode")
+    auto_refresh_settings = st.checkbox("Enable Auto-Refresh (every 30 seconds)")
+    if auto_refresh_settings:
+        st.experimental_rerun()
 
-st.success("Settings saved. These will apply on next refresh.")
+    st.markdown("### ⚙️ Model Settings")
+
+    # Risk score threshold
+    new_threshold = st.slider("Risk Score Threshold", 0.0, 1.0, 0.6, 0.05)
+    st.session_state["risk_threshold"] = new_threshold
+
+    # Model toggle
+    model_choice = st.radio("Model Selection", ["Hybrid", "XGBoost Only", "Isolation Forest Only"])
+    st.session_state["model_choice"] = model_choice
+
+    st.success("Settings saved. These will apply on next refresh.")

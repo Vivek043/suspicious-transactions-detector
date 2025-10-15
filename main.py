@@ -56,6 +56,8 @@ async def score_transactions(payload: List[Dict]):
 
     # Final flag logic
     final_flags = [1 if (xgb > 0.6 or iso == 1) else 0 for xgb, iso in zip(xgb_scores, iso_flags)]
+    df["final_flag"] = final_flags
+
 
     # Reason generator
     def get_flag_reason(row):
@@ -75,3 +77,4 @@ async def score_transactions(payload: List[Dict]):
 
     # Return scored data
     return df.to_dict(orient="records")
+
