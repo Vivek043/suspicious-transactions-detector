@@ -1,21 +1,21 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict
 import pandas as pd
 import joblib
 
-# Import preprocessing logic
+# Import your preprocessing logic
 from features.feature_engineering import preprocess_transaction
 
 # Load models
 xgb_model = joblib.load("models/xgboost_classifier.pkl")
 iso_model = joblib.load("models/isolation_forest.pkl")
 
-# Define FastAPI app
+# Initialize FastAPI app
 app = FastAPI()
 
-# Enable CORS for frontend
+# Enable CORS for frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -44,7 +44,7 @@ async def score_transactions(payload: List[Dict]):
 
     # Select features
     xgb_features = [col for col in df.columns if col.startswith("feat_")]
-    iso_features = xgb_features  # Assuming same features for both
+    iso_features = xgb_features  # Assuming same features for both models
 
     # Score with XGBoost
     xgb_scores = xgb_model.predict_proba(df[xgb_features])[:, 1]
