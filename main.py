@@ -23,7 +23,6 @@ async def score_transactions(payload: List[Dict]):
     df["final_flag"] = 1
     df["reason"] = "High XGBoost score"
 
-    # Ensure JSON-safe output
     df.fillna("missing", inplace=True)
 
     return df.to_dict(orient="records")

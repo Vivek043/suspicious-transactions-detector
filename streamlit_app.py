@@ -31,10 +31,11 @@ def get_scored_data(payload):
 
 scored_df = get_scored_data(sample_payload)
 if scored_df.empty or "final_flag" not in scored_df.columns:
-    st.error("⚠️ Backend response missing 'final_flag'. Check for NaNs or scoring logic.")
+    st.error("⚠️ Backend response missing 'final_flag'. Check backend scoring logic.")
     st.stop()
 st.write("Returned columns:", scored_df.columns.tolist())
 st.dataframe(scored_df.head())
+
 
 # Dashboard Section
 if section == "Dashboard":
