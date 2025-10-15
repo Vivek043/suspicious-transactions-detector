@@ -19,15 +19,22 @@ iso_model = joblib.load("models/isolation_forest.pkl")
 
 # Load history data
 history_df = pd.read_csv("data/transactions.csv")
-
+def get_flag_reason(row):
+    reasons = []
+    if row["amount"] > 10000:
+        reasons.append("Large transfer")
+    if row["country_risk_score"] > 1.0:
+        reasons.append("High-risk country")
+    if row["is_blacklisted"] == 1:
+        reasons.append("Blacklisted account")
+    if row["geo_distance"] > 5000:
+        reasons.append("Unusual geo distance")
+    return ", ".join(reasons) if reasons else "Normal"
 @app.post("/score")
 async def score_transaction(request: Request):
     try:
         payload = await request.json()
         txn_df = pd.DataFrame(payload)
-
-        # Normalize column names
-        txn_df.columns = txn_df.columns.str.strip().str.lower()  # normalize headers
 
         # Normalize column names
         txn_df.columns = txn_df.columns.str.strip().str.lower()
@@ -41,6 +48,7 @@ async def score_transaction(request: Request):
             "receiver_account": "destination",
             "dest_account": "destination"
         })
+
         required_cols = ["source", "destination", "amount", "source_lat", "source_lon", "destination_lat", "destination_lon", "destination_country"]
         missing = [col for col in required_cols if col not in txn_df.columns]
         if missing:
@@ -50,22 +58,23 @@ async def score_transaction(request: Request):
         expected_features = ["amount", "tx_count_24h", "is_blacklisted", "geo_distance", "country_risk_score"]
         features = preprocess_transaction(txn_df, history_df)
         features = features[expected_features]
-        print("✅ Features passed to model:", features.columns.tolist())
-        print("✅ Scoring with features:", features.columns.tolist())
 
         # Model scoring
         xgb_scores = xgb_model.predict_proba(features)[:, 1]
         xgb_flags = (xgb_scores > 0.5).astype(int)
         iso_flags = [1 if f == -1 else 0 for f in iso_model.predict(features)]
 
-        results = pd.DataFrame({
-            "xgb_score": xgb_scores,
-            "xgb_flag": xgb_flags,
-            "iso_flag": iso_flags,
-            "final_flag": [max(x, i) for x, i in zip(xgb_flags, iso_flags)]
-        })
+        # Combine features and scores for reasoning
+        combined = features.copy()
+        combined["xgb_score"] = xgb_scores
+        combined["xgb_flag"] = xgb_flags
+        combined["iso_flag"] = iso_flags
+        combined["final_flag"] = [max(x, i) for x, i in zip(xgb_flags, iso_flags)]
 
-        return results.to_dict(orient="records")
+        # Apply reason logic
+        combined["reason"] = combined.apply(get_flag_reason, axis=1)
+
+        return combined.to_dict(orient="records")
 
     except Exception as e:
         print("❌ Backend error:", e)
