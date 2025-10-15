@@ -74,7 +74,8 @@ async def score_transactions(payload: List[Dict]):
     df["iso_flag"] = iso_flags
     df["final_flag"] = final_flags
     df["reason"] = df.apply(get_flag_reason, axis=1)
-
+    df.fillna("missing", inplace=True)  # Replace NaNs with a string
+    
     # Return scored data
     return df.to_dict(orient="records")
 
