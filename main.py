@@ -37,50 +37,12 @@ class Transaction(BaseModel):
 async def score_transactions(payload: List[Dict]):
     df = pd.DataFrame(payload)
 
-    # Preprocess
-    df = preprocess_transaction(df)
+    # Dummy scoring logic
+    df["xgb_score"] = 0.7
+    df["xgb_flag"] = 1
+    df["iso_flag"] = 0
+    df["final_flag"] = 1
+    df["reason"] = "High XGBoost score"
 
-    # Select features
-    xgb_features = [col for col in df.columns if col.startswith("feat_")]
-    iso_features = xgb_features
-
-    # Score with XGBoost
-    try:
-        xgb_scores = xgb_model.predict_proba(df[xgb_features])[:, 1]
-    except Exception as e:
-        return {"error": f"XGBoost scoring failed: {str(e)}"}
-
-    xgb_flags = (xgb_scores > 0.6).astype(int)
-
-    # Score with Isolation Forest
-    try:
-        iso_raw = iso_model.predict(df[iso_features])
-    except Exception as e:
-        return {"error": f"Isolation Forest scoring failed: {str(e)}"}
-
-    iso_flags = [1 if val == -1 else 0 for val in iso_raw]
-
-    # Final flag logic
-    final_flags = [1 if (xgb > 0.6 or iso == 1) else 0 for xgb, iso in zip(xgb_scores, iso_flags)]
-
-    # Reason generator
-    def get_flag_reason(row):
-        reasons = []
-        if row["xgb_score"] > 0.6:
-            reasons.append("High XGBoost score")
-        if row["iso_flag"] == 1:
-            reasons.append("Isolation Forest anomaly")
-        return ", ".join(reasons) if reasons else "No anomaly"
-
-    # Add results
-    df["xgb_score"] = xgb_scores
-    df["xgb_flag"] = xgb_flags
-    df["iso_flag"] = iso_flags
-    df["final_flag"] = final_flags
-    df["reason"] = df.apply(get_flag_reason, axis=1)
-
-    # Sanitize output
-    df = df.replace({pd.NA: 0, None: 0})
     df.fillna("missing", inplace=True)
-
     return df.to_dict(orient="records")
