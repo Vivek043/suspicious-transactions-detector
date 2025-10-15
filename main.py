@@ -5,17 +5,17 @@ from typing import List, Dict
 import pandas as pd
 import joblib
 
-# Import your preprocessing logic
+# Import preprocessing
 from features.feature_engineering import preprocess_transaction
 
 # Load models
 xgb_model = joblib.load("models/xgboost_classifier.pkl")
 iso_model = joblib.load("models/isolation_forest.pkl")
 
-# Initialize FastAPI app
+# Initialize app
 app = FastAPI()
 
-# Enable CORS for frontend access
+# CORS setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define input schema
+# Input schema
 class Transaction(BaseModel):
     transaction_id: str
     source: str
@@ -32,19 +32,17 @@ class Transaction(BaseModel):
     timestamp: str
     country: str
     currency: str
-    # Add any other fields your pipeline expects
 
 @app.post("/score")
 async def score_transactions(payload: List[Dict]):
-    # Convert payload to DataFrame
     df = pd.DataFrame(payload)
 
-    # Preprocess input
+    # Preprocess
     df = preprocess_transaction(df)
 
     # Select features
     xgb_features = [col for col in df.columns if col.startswith("feat_")]
-    iso_features = xgb_features  # Assuming same features for both models
+    iso_features = xgb_features
 
     # Score with XGBoost
     xgb_scores = xgb_model.predict_proba(df[xgb_features])[:, 1]
@@ -56,8 +54,6 @@ async def score_transactions(payload: List[Dict]):
 
     # Final flag logic
     final_flags = [1 if (xgb > 0.6 or iso == 1) else 0 for xgb, iso in zip(xgb_scores, iso_flags)]
-    df["final_flag"] = final_flags
-
 
     # Reason generator
     def get_flag_reason(row):
@@ -68,14 +64,15 @@ async def score_transactions(payload: List[Dict]):
             reasons.append("Isolation Forest anomaly")
         return ", ".join(reasons) if reasons else "No anomaly"
 
-    # Add results to DataFrame
+    # Add results
     df["xgb_score"] = xgb_scores
     df["xgb_flag"] = xgb_flags
     df["iso_flag"] = iso_flags
     df["final_flag"] = final_flags
     df["reason"] = df.apply(get_flag_reason, axis=1)
-    df.fillna("missing", inplace=True)  # Replace NaNs with a string
-    
-    # Return scored data
-    return df.to_dict(orient="records")
 
+    # Sanitize output
+    df = df.replace({pd.NA: 0, None: 0, float("nan"): 0})
+    df.fillna("missing", inplace=True)
+
+    return df.to_dict(orient="records")
