@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import datetime
-
+st.session_state.clear()
 st.set_page_config(page_title="Fraud Detection Dashboard", layout="wide")
 
 # Sidebar Navigation
@@ -22,13 +22,16 @@ sample_payload = sample_data.to_dict(orient="records")
 # Score transactions
 @st.cache_data(ttl=60)
 def get_scored_data(payload):
-    try:
-        response = requests.post(BACKEND_URL, json=payload)
-        return pd.DataFrame(response.json())
-    except Exception as e:
-        st.error(f"Backend error: {e}")
-        return pd.DataFrame()
-
+    # Simulate backend response
+    dummy = pd.DataFrame({
+        "transaction_id": ["txn_001", "txn_002"],
+        "xgb_score": [0.7, 0.3],
+        "xgb_flag": [1, 0],
+        "iso_flag": [0, 1],
+        "final_flag": [1, 1],
+        "reason": ["High XGBoost score", "Isolation Forest anomaly"]
+    })
+    return dummy
 scored_df = get_scored_data(sample_payload)
 if scored_df.empty or "final_flag" not in scored_df.columns:
     st.error("⚠️ Backend response missing 'final_flag'. Check backend scoring logic.")
